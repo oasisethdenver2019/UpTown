@@ -29,16 +29,15 @@ contract UpTownFund is Ownable, ERC223ReceivingContract {
     uint constant MIN_SIGNATURES = 2;
     address tokenAddress;
     uint maxDonation;
-    //CampaignRegistry Registry;
 
     mapping (address => uint) ContributionTracker;
 
     event ownerAdded(address newOwner);
     event ownerRemoved(address deletedOwner);
 
-    event Contribution(address contributor, address reciever, uint amount, uint timestamp);
+    event Contribution(address contributor, address receiver, uint amount, uint timestamp);
 
-    event transactionCreated(address campagin, address reciever, uint amount, uint timestamp);
+    event transactionCreated(address campaign, address receiver, uint amount, uint timestamp);
     event TransactionCompleted(address from, address to, uint amount, uint transactionId, uint timestamp);
     event TransactionSigned(address by, uint transactionId);
 
@@ -49,9 +48,7 @@ contract UpTownFund is Ownable, ERC223ReceivingContract {
 
 
     function UpTownFund( uint _maxDonation, bytes32 _name, bytes32 _dataLocation, bytes32 _logo) public {
-     //   Registry= CampaignRegistry(0x0c0bf41040ce0e6a014527eb3993bad86227fcf1);
-        tokenAddress = 0x1b880a3ce1f44a5ebfb29b9a11fdaff5e0ef3e0d;
-        //Registry.addCampaignID(this,msg.sender,_name,_dataLocation,_logo);
+        tokenAddress = 0xbf8803538148d5d0ecdda3843aaded982d9a5d14;
         maxDonation= _maxDonation;
     }
 
@@ -72,14 +69,12 @@ contract UpTownFund is Ownable, ERC223ReceivingContract {
 
     function contribute(uint _amount) public {
         require (SafeMath.add(ContributionTracker[msg.sender],_amount) <= maxDonation );
-       // require(Registry.isContributor(msg.sender));
         ContributionTracker[msg.sender]= SafeMath.add(ContributionTracker[msg.sender], _amount);
         require(ERC223(tokenAddress).transferFrom(msg.sender, this, _amount));
 
     }
 
     function tokenFallback(address _from, uint _value) public {
-        //require(Registry.isContributor(_from));
         require(SafeMath.add(ContributionTracker[_from],_value) <= maxDonation);
         Contribution(_from, this, _value, now);
     }
