@@ -86,10 +86,10 @@ class GameComponent extends Component{
                 defaultSelectedKeys={['2']}
                 style={{ lineHeight: '64px' }}
               >
-                <Menu.Item key="1"><Link to={"/about"}>Task Status</Link></Menu.Item>
-                <Menu.Item key="2">Dash Board</Menu.Item>
-                <Menu.Item key="3"><Link to={"/admin"}>Submit Task</Link></Menu.Item>
-                <Menu.Item key="4"><Link to={"/ipfs"}>Validate</Link></Menu.Item>
+                {/* <Menu.Item key="1"><Link to={"/about"}>Task Status</Link></Menu.Item> */}
+                <Menu.Item key="2">UpTown</Menu.Item>
+                {/* <Menu.Item key="3"><Link to={"/admin"}>Submit Task</Link></Menu.Item>
+                <Menu.Item key="4"><Link to={"/ipfs"}>Validate</Link></Menu.Item> */}
               </Menu>
           </Header>
             <Content style={{ padding: '0 50px' }}>
