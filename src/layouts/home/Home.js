@@ -6,12 +6,9 @@ class Home extends Component {
       <main className="container">
         <div className="pure-g">
           <div className="pure-u-1-1">
-            <h1>Good to Go!</h1>
-            <p>Your Truffle Box is installed and ready.</p>
-            <h2>UPort Authentication</h2>
-            <p>This particular box comes with UPort authentication built-in.</p>
-            <p>NOTE: To interact with your smart contracts through UPort's web3 instance, make sure they're deployed to the Ropsten testnet.</p>
-            <p>In the upper-right corner, you'll see a login button. Click it to login with UPort. There is an authenticated route, "/dashboard", that displays the UPort user's name once authenticated.</p>
+            <h1>UpTown Alpha!</h1>
+            <p>Denver City Affordable Housing Solution on Ethereum</p>
+            <h2>Uport Login</h2>
             <h3>Redirect Path</h3>
             <p>This example redirects home ("/") when trying to access an authenticated route without first authenticating. You can change this path in the failureRedirectUrl property of the UserIsAuthenticated wrapper on <strong>line 9</strong> of util/wrappers.js.</p>
             <h3>Accessing User Data</h3>
