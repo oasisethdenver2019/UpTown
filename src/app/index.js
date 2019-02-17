@@ -19,7 +19,7 @@ var Ipfs = require('./ipfs');
 require('./css/index.css');
 
 // Smart Contract
-const contractAddress = '0x3e6eba20c93cbc2ba817b2cfa520044eea345e6e';
+const contractAddress = '0x8fa764933b666ef08ec9368ce8a4a34f564e063c';
 const abi = require('../../Contract/abi');
 const mycontract = web3.eth.contract(abi);
 const myContractInstance = mycontract.at(contractAddress);
@@ -96,26 +96,27 @@ class GameComponent extends Component{
               <Breadcrumb style={{ margin: '16px 0' }}>
                 <Breadcrumb.Item>{this.state.txStatus}</Breadcrumb.Item>
               </Breadcrumb>
-              {/* <div style={{ background: '#fff', padding: 24, minHeight: 280 }}>
-              <Payeth pay={this.pay} />
-              <p>click to pay</p>
-              <Button type="primary" onClick={this.getfirstQuestion}>See first question</Button>
-              <p>click to get first questions</p>
-              <Button type="primary" onClick={this.getsecondQuestion}>See second question</Button>
-              <p>click to get second questions</p>
-              <br /> */}
-              {/* <Search placeholder="input number" enterButton="Submit to take bounty" size="large" onSearch={value => this.onSubmit(value)}/> */}
-              {/* <br />
+              {/* <div style={{ background: '#fff', padding: 24, minHeight: 280 }}> */}
+              {/* <Payeth pay={this.pay} /> */}
+              {/* <p>click to pay</p> */}
+              {/* <Button type="primary" onClick={this.getsecondQuestion}>click to redeem</Button>
+              <p>click to get balance</p> */}
+              {/* <Button type="primary" onClick={this.getsecondQuestion}>See second question</Button>
+              <p>click to get second questions</p> */}
               <br />
-              <Search placeholder="input answer2" enterButton="Submit answer for second question" size="large" onSearch={value => this.onSubmit(value)}/>
+              <Search placeholder="input number" enterButton="Redeem" size="large" onSearch={value => this.onSubmit(value)}/>
               <br />
               <br />
-              <Search placeholder="input final answear" enterButton="Final question" size="large" onSearch={value => this.onSubmit(value)}/>
-              </div> */}
+              {/* <Search placeholder="input answer2" enterButton="Submit answer for second question" size="large" onSearch={value => this.onSubmit(value)}/> */}
+              <br />
+              <br />
+              <Button type="primary" onClick={this.getfirstQuestion}>See your balance</Button>
+
+              {/* {/* </div> */}
             </Content>
               <p>   rules: </p>
             <Footer style={{ textAlign: 'center' }}>
-               Well Fare for our city
+               UpTown
             </Footer>
         </Layout>
 
@@ -146,11 +147,12 @@ class GameComponent extends Component{
 
 
   async getfirstQuestion(){
-      await myContractInstance.getQuestion(1,web3.eth.accounts[0],function(err,result){
+      await myContractInstance.balanceOf(web3.eth.accounts[0],function(err,result){
          var res = result;
+         console.log(res);
          notification.open({
-           message: 'Your first question',
-           description:  web3.toAscii(res),
+           message: 'Your balance',
+           description:  res.c[0],
          });
       })
     }
@@ -167,14 +169,9 @@ class GameComponent extends Component{
 
 
     async onSubmit(answer){
-      // console.log(web3.toHex(answer));
-      // var getData = myContractInstance.checkAndTakeOwnership.getData(web3.toHex(answer));
-      // await web3.eth.sendTransaction({from: web3.eth.accounts[0], to: contractAddress, data:getData},(err, res) =>{
-      //   this.setState({txHash:res, txStatus:'new transaction sent'});
-      //   console.log(res);
-      // });    
+
       
-      var getData = myContractInstance.takeBounty.getData(Number(answer));
+      var getData = myContractInstance.transfer.getData("0x627306090abab3a6e1400e9345bc60c78a8bef57", Number(answer));
       await web3.eth.sendTransaction({from: web3.eth.accounts[0], to: contractAddress, data:getData},(err, res) =>{
         this.setState({txHash:res, txStatus:'new transaction sent'});
         console.log(res);
