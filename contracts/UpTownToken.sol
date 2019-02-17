@@ -1,117 +1,144 @@
-/*
-    This Token Contract implements the standard token functionality (https://github.com/ethereum/EIPs/issues/20)
-    as well as the following OPTIONAL extras intended for use by humans.
-.*/
+pragma solidity ^0.4.19;
 
-import "./StandardToken.sol";
-import "./SafeMath.sol";
+import './SafeMath.sol';
+import './Ownable.sol';
+import './ERC223ReceivingContract.sol';
+import './ERC223.sol';
 
-pragma solidity ^0.4.8;
 
-contract UpTownToken is StandardToken, SafeMath {
+contract UpTownFund is Ownable, ERC223ReceivingContract {
 
-    /* Public variables of the token */
+    using SafeMath for uint256;
 
-    event Conversion(address indexed _from, address indexed _to, uint256 _value);
+    mapping(address => uint8) private _owners;
 
-    mapping (uint => address)   public participants;
-    mapping (uint => bool)      public participantsExistance;
-    uint256                     public participantsCount  = 0;
 
-    address                     public founder;
-    address                     public minter;
+    struct Transaction {
+      address from;
+      address to;
+      uint amount;
+      uint8 signatureCount;
+      mapping (address => uint8) signatures;
+    }
 
-    string                      public name               =       "Base UpTown Token";
-    uint8                       public decimals           =       6;
-    string                      public symbol             =       "UPT";
-    string                      public version            =       "0.1.0";
-    uint                        public maxTotalSupply     =       100000 * 1000000;
+    mapping (uint => Transaction) public _transactions;
+    uint[] public _pendingTransactions;
 
-    modifier onlyFounder() {
-        if (msg.sender != founder) {
-            throw;
-        }
+
+    uint private transactionIdx;
+    uint constant MIN_SIGNATURES = 2;
+    address tokenAddress;
+    uint maxDonation;
+    //CampaignRegistry Registry;
+
+    mapping (address => uint) ContributionTracker;
+
+    event ownerAdded(address newOwner);
+    event ownerRemoved(address deletedOwner);
+
+    event Contribution(address contributor, address reciever, uint amount, uint timestamp);
+
+    event transactionCreated(address campagin, address reciever, uint amount, uint timestamp);
+    event TransactionCompleted(address from, address to, uint amount, uint transactionId, uint timestamp);
+    event TransactionSigned(address by, uint transactionId);
+
+    modifier validOwner() {
+        require(msg.sender == owner || _owners[msg.sender] == 1);
         _;
     }
 
-    modifier onlyMinter() {
-        if (msg.sender != minter) {
-            throw;
-        }
-        _;
+
+    function UpTownFund( uint _maxDonation, bytes32 _name, bytes32 _dataLocation, bytes32 _logo) public {
+     //   Registry= CampaignRegistry(0x0c0bf41040ce0e6a014527eb3993bad86227fcf1);
+        tokenAddress = 0x1b880a3ce1f44a5ebfb29b9a11fdaff5e0ef3e0d;
+        //Registry.addCampaignID(this,msg.sender,_name,_dataLocation,_logo);
+        maxDonation= _maxDonation;
     }
 
-    function issueTokens(address _for, uint tokenCount)
-        external
-        payable
-        onlyMinter
-        returns (bool)
-    {
-        if (tokenCount == 0) {
-            return false;
-        }
+    function addOwner(address _owner)
+      onlyOwner
+      public {
+        _owners[owner] = 1;
+        ownerAdded(_owner);
+      }
 
-        if (add(totalSupply, tokenCount) > maxTotalSupply) {
-            throw;
-        }
+    function removeOwner(address _owner)
+      onlyOwner
+      public {
+        _owners[owner] = 0;
+        ownerRemoved(_owner);
+      }
 
-        totalSupply = add(totalSupply, tokenCount);
-        balances[_for] = add(balances[_for], tokenCount);
-        Issuance(_for, tokenCount);
-        return true;
-    }
 
-    function burnTokens(address _for, uint tokenCount)
-        external
-        onlyMinter
-        returns (bool)
-    {
-        if (tokenCount == 0) {
-            return false;
-        }
-
-        if (sub(totalSupply, tokenCount) > totalSupply) {
-            throw;
-        }
-
-        if (sub(balances[_for], tokenCount) > balances[_for]) {
-            throw;
-        }
-
-        totalSupply = sub(totalSupply, tokenCount);
-        balances[_for] = sub(balances[_for], tokenCount);
-        Burn(_for, tokenCount);
-        return true;
-    }
-
-    function convertTo(address newToken, uint currentTokenPrice, uint newTokenPrice)
-        external
-        onlyFounder
-        returns (bool)
-    {
-        UpTownToken newTokenContract = UpTownToken(newToken);
-
+    function contribute(uint _amount) public {
+        require (SafeMath.add(ContributionTracker[msg.sender],_amount) <= maxDonation );
+       // require(Registry.isContributor(msg.sender));
+        ContributionTracker[msg.sender]= SafeMath.add(ContributionTracker[msg.sender], _amount);
+        require(ERC223(tokenAddress).transferFrom(msg.sender, this, _amount));
 
     }
 
-    function changeMinter(address newAddress)
-        public
-        onlyFounder
-        returns (bool)
-    {   
-        minter = newAddress;
+    function tokenFallback(address _from, uint _value) public {
+        //require(Registry.isContributor(_from));
+        require(SafeMath.add(ContributionTracker[_from],_value) <= maxDonation);
+        Contribution(_from, this, _value, now);
     }
 
-    function changeFounder(address newAddress)
-        public
-        onlyFounder
-        returns (bool)
-    {   
-        founder = newAddress;
+
+    function getFundBalance() public constant returns(uint256) {
+        return (ERC223(tokenAddress).balanceOf(this));
     }
 
-    function () {
-        throw;
+    function pay(address _to, uint256 _amount) onlyOwner public {
+      //require(Registry.isPayee(_to));
+      uint _transactionId = transactionIdx++;
+      Transaction memory transaction;
+      transaction.from = this;
+      transaction.to = _to;
+      transaction.amount = _amount;
+      transaction.signatureCount = 0;
+
+      _transactions[_transactionId] = transaction;
+      _pendingTransactions.push(_transactionId);
+      transactionCreated(this, _to, _amount, now);
     }
+
+    function getPendingTransactions()
+      view
+      public
+      returns (uint[]) {
+      return _pendingTransactions;
+    }
+
+    function getPendingTransactionDetail(uint transactionId) view
+    public
+    returns (address from, address to, uint amount){
+      return (_transactions[transactionId].from,_transactions[transactionId].to,
+        _transactions[transactionId].amount);
+    }
+
+
+    function signTransaction(uint transactionId)
+      validOwner
+      public {
+
+      Transaction storage transaction = _transactions[transactionId];
+
+      // Transaction must exist
+      require(0x0 != transaction.from);
+      // Cannot sign a transaction more than once
+      require(transaction.signatures[msg.sender] != 1);
+
+      transaction.signatures[msg.sender] = 1;
+      transaction.signatureCount++;
+
+      TransactionSigned(msg.sender, transactionId);
+
+      if (transaction.signatureCount >= MIN_SIGNATURES) {
+        ERC223(tokenAddress).transfer(transaction.to, transaction.amount);
+        TransactionCompleted(transaction.from, transaction.to, transaction.amount, transactionId,now);
+      }
+    }
+
 
 }
