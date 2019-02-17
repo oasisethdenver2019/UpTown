@@ -104,7 +104,7 @@ class GameComponent extends Component{
               <Button type="primary" onClick={this.getsecondQuestion}>See second question</Button>
               <p>click to get second questions</p>
               <br /> */}
-              <Search placeholder="input number" enterButton="Submit to take bounty" size="large" onSearch={value => this.onSubmit(value)}/>
+              {/* <Search placeholder="input number" enterButton="Submit to take bounty" size="large" onSearch={value => this.onSubmit(value)}/> */}
               {/* <br />
               <br />
               <Search placeholder="input answer2" enterButton="Submit answer for second question" size="large" onSearch={value => this.onSubmit(value)}/>
