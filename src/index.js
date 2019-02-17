@@ -16,6 +16,8 @@ import store from './store'
 
 const history = syncHistoryWithStore(browserHistory, store)
 
+
+
 ReactDOM.render((
     <Provider store={store}>
       <Router history={history}>
