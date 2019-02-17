@@ -47,8 +47,8 @@ contract UpTownFund is Ownable, ERC223ReceivingContract {
     }
 
 
-    function UpTownFund( uint _maxDonation, bytes32 _name, bytes32 _dataLocation, bytes32 _logo) public {
-        tokenAddress = 0xbf8803538148d5d0ecdda3843aaded982d9a5d14;
+    function UpTownFund( uint _maxDonation, string _name) public {
+        tokenAddress = 0x8fa764933b666ef08ec9368ce8a4a34f564e063c;
         maxDonation= _maxDonation;
     }
 
@@ -69,12 +69,14 @@ contract UpTownFund is Ownable, ERC223ReceivingContract {
 
     function contribute(uint _amount) public {
         require (SafeMath.add(ContributionTracker[msg.sender],_amount) <= maxDonation );
+       // require(Registry.isContributor(msg.sender));
         ContributionTracker[msg.sender]= SafeMath.add(ContributionTracker[msg.sender], _amount);
         require(ERC223(tokenAddress).transferFrom(msg.sender, this, _amount));
 
     }
 
     function tokenFallback(address _from, uint _value) public {
+        //require(Registry.isContributor(_from));
         require(SafeMath.add(ContributionTracker[_from],_value) <= maxDonation);
         Contribution(_from, this, _value, now);
     }

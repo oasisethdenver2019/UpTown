@@ -4,7 +4,7 @@ pragma solidity ^0.4.18;
 
 import './ERC223Interface.sol';
 import './ERC223ReceivingContract.sol';
-import '../util/SafeMath.sol';
+import './SafeMath.sol';
 
 
 contract ERC223 is ERC223Interface {
@@ -30,8 +30,8 @@ contract ERC223 is ERC223Interface {
         string _tokenSymbol,
         address _owner
     ) public {
+        totalSupply = _initialAmount ;                        // Update total supply
         balances[_owner] = _initialAmount;               // Give the creator all initial tokens
-        totalSupply = _initialAmount;                        // Update total supply
         name = _tokenName;                                   // Set the name for display purposes
         decimals = _decimalUnits;                            // Amount of decimals for display purposes
         symbol = _tokenSymbol;                               // Set the symbol for display purposes
