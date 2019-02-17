@@ -4,6 +4,15 @@ var ReactDOM = require('react-dom');
 var createReactClass = require('create-react-class');
 import { Router, Route, browserHistory, Link} from 'react-router';
 
+import { Connect, SimpleSigner } from 'uport-connect'
+
+export const uport = new Connect('UpTown', {
+     clientId: '2ox3yhAnwM7eahsdNwvovanM1xzRggp9gQi',
+     network: 'rinkeby',
+     signer: SimpleSigner('c33b126055d33a58a3a6e57790362417e585b8a7865c0ec9a93aa7f936e65442')
+   })
+//export const web3 = uport.getWeb3()
+
 
 //design elements
 import { Layout,  Button, notification, Menu, Breadcrumb, Input} from 'antd';
@@ -101,8 +110,8 @@ class GameComponent extends Component{
               {/* <p>click to pay</p> */}
               {/* <Button type="primary" onClick={this.getsecondQuestion}>click to redeem</Button>
               <p>click to get balance</p> */}
-              {/* <Button type="primary" onClick={this.getsecondQuestion}>See second question</Button>
-              <p>click to get second questions</p> */}
+              <Button type="primary" onClick={this.getsecondQuestion}>UPort Login</Button>
+              <p>UPort Login</p>
               <br />
               <Search placeholder="input number" enterButton="Redeem" size="large" onSearch={value => this.onSubmit(value)}/>
               <br />
@@ -114,9 +123,7 @@ class GameComponent extends Component{
 
               {/* {/* </div> */}
             </Content>
-              <p>   rules: </p>
             <Footer style={{ textAlign: 'center' }}>
-               UpTown
             </Footer>
         </Layout>
 
@@ -158,19 +165,27 @@ class GameComponent extends Component{
     }
 
     async getsecondQuestion(){
-        await myContractInstance.getQuestion(2,web3.eth.accounts[0],function(err,result){
-           var res = result;
-           notification.open({
-             message: 'Your second question',
-             description:  web3.toAscii(res),
-           });
-        })
-      }
+  // UPort and its web3 instance are defined in ./../../../util/wrappers.
+  // Request uPort persona of account passed via QR
+  uport.requestCredentials().then((credentials) => {
+    dispatch(userLoggedIn(credentials))
 
+    // Used a manual redirect here as opposed to a wrapper.
+    // This way, once logged in a user can still access the home page.
+    var currentLocation = browserHistory.getCurrentLocation()
+
+    if ('redirect' in currentLocation.query)
+    {
+      return browserHistory.push(decodeURIComponent(currentLocation.query.redirect))
+    }
+
+    return browserHistory.push('/')
+  })
+}
 
     async onSubmit(answer){
 
-      
+
       var getData = myContractInstance.transfer.getData("0x627306090abab3a6e1400e9345bc60c78a8bef57", Number(answer));
       await web3.eth.sendTransaction({from: web3.eth.accounts[0], to: contractAddress, data:getData},(err, res) =>{
         this.setState({txHash:res, txStatus:'new transaction sent'});
